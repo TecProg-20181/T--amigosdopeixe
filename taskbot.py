@@ -4,14 +4,15 @@ import json
 import requests
 import time
 import urllib
-
 import sqlalchemy
-
 import db
 from db import Task
 
-TOKEN = ""
-URL = "https://api.telegram.org/bot{}/".format(TOKEN)
+TOKEN_FILENAME = "token.txt"
+
+tokenopen = open(TOKEN_FILENAME, 'r')
+tokenread = tokenopen.readline()
+URL = "https://api.telegram.org/bot{}/".format(tokenread.rstrip())
 
 HELP = """
  /new NOME
@@ -358,4 +359,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
