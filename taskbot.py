@@ -196,7 +196,7 @@ def handle_updates(updates):
                     return
                 task.status = 'TODO'
                 db.session.commit()
-                send_message("*TODO* task [[{}]] {}".format(task.id, task.name), chat)
+                send_message("*TODO* task [[{}]] {} {}".format(task.id, task.name, task.priority), chat)
 
         elif command == '/doing':
             if not msg.isdigit():
