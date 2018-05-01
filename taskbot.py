@@ -24,7 +24,11 @@ HELP = """
  /rename ID NOME
  /dependson ID ID...
  /duplicate ID
+ /priorityview
  /priority ID PRIORITY{low, medium, high}
+ priority low = \U0001F600
+ priority medium = \U0001F610
+ priority high = \U0001F621
  /help
 """
 
@@ -192,7 +196,7 @@ def handle_updates(updates):
                     return
                 task.status = 'TODO'
                 db.session.commit()
-                send_message("*TODO* task [[{}]] {}".format(task.id, task.name), chat)
+                send_message("*TODO* task [[{}]] {} {}".format(task.id, task.name, task.priority), chat)
 
         elif command == '/doing':
             if not msg.isdigit():
@@ -207,7 +211,7 @@ def handle_updates(updates):
                     return
                 task.status = 'DOING'
                 db.session.commit()
-                send_message("*DOING* task [[{}]] {}".format(task.id, task.name), chat)
+                send_message("*DOING* task [[{}]] {} {}".format(task.id, task.name, task.priority), chat)
 
         elif command == '/done':
             if not msg.isdigit():
@@ -222,7 +226,7 @@ def handle_updates(updates):
                     return
                 task.status = 'DONE'
                 db.session.commit()
-                send_message("*DONE* task [[{}]] {}".format(task.id, task.name), chat)
+                send_message("*DONE* task [[{}]] {} {}".format(task.id, task.name, task.priority), chat)
 
         elif command == '/list':
             a = ''
@@ -236,7 +240,7 @@ def handle_updates(updates):
                 elif task.status == 'DONE':
                     icon = '\U00002611'
 
-                a += '[[{}]] {} {}\n'.format(task.id, icon, task.name)
+                a += '[[{}]] {} {} {}\n'.format(task.id, icon, task.name, task.priority)
                 a += deps_text(task, chat)
 
             send_message(a, chat)
@@ -246,15 +250,15 @@ def handle_updates(updates):
             query = db.session.query(Task).filter_by(status='TODO', chat=chat).order_by(Task.id)
             a += '\n\U0001F195 *TODO*\n'
             for task in query.all():
-                a += '[[{}]] {}\n'.format(task.id, task.name)
+                a += '[[{}]] {} {}\n'.format(task.id, task.name, task.priority)
             query = db.session.query(Task).filter_by(status='DOING', chat=chat).order_by(Task.id)
             a += '\n\U000023FA *DOING*\n'
             for task in query.all():
-                a += '[[{}]] {}\n'.format(task.id, task.name)
+                a += '[[{}]] {} {}\n'.format(task.id, task.name, task.priority)
             query = db.session.query(Task).filter_by(status='DONE', chat=chat).order_by(Task.id)
             a += '\n\U00002611 *DONE*\n'
             for task in query.all():
-                a += '[[{}]] {}\n'.format(task.id, task.name)
+                a += '[[{}]] {} {}\n'.format(task.id, task.name, task.priority)
 
             send_message(a, chat)
         elif command == '/dependson':
@@ -329,7 +333,13 @@ def handle_updates(updates):
                     if text.lower() not in ['high', 'medium', 'low']:
                         send_message("The priority *must be* one of the following: high, medium, low", chat)
                     else:
-                        task.priority = text.lower()
+                        if text.lower() == 'low':
+                            task.priority = '\U0001F600'
+                        elif text.lower() =='medium':
+                            task.priority = '\U0001F610'
+                        elif text.lower() =='high':
+                            task.priority = '\U0001F621'
+
                         send_message("*Task {}* priority has priority *{}*".format(task_id, text.lower()), chat)
                 db.session.commit()
 
