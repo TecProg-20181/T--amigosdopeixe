@@ -31,6 +31,12 @@ HELP = """
  priority high = \U0001F621
  /help
 """
+EMOJI_DONE = '\U00002611'
+EMOJI_STATUS = '\U0001F4DD'
+EMOJI_TASK = '\U0001F4CB'
+EMOJI_DOING = '\U000023FA'
+EMOJI_TODO = '\U0001F195'
+
 
 def get_url(url):
     response = requests.get(url)
@@ -94,6 +100,50 @@ def is_msg_digit(msg, chat):
         return True
     send_message("You must inform the task id", chat)
     return False
+
+
+def list_tasks(msg, chat):
+    response = ''
+    response += EMOJI_TASK + 'Task List\n'
+    query = db.session.query(Task).filter_by(parents='',
+                                             chat=chat).order_by(Task.id)
+
+    for task in query.all():
+        if task.status == 'DOING':
+            icon = EMOJI_DOING
+        elif task.status == 'DONE':
+            icon = EMOJI_DONE
+        elif task.status == 'TODO':
+            icon = EMOJI_TODO
+
+        response += '[[{}]] {} {} {}\n'.format(task.id,
+                                               icon, task.name, task.priority)
+        response += deps_text(task, chat)
+
+    send_message(response, chat)
+    response = ''
+
+    response += EMOJI_STATUS + ' _Status_\n'
+
+    query = db.session.query(Task).filter_by(status='TODO',
+                                             chat=chat).order_by(Task.id)
+    response += '\n' + EMOJI_TODO + ' *TODO*\n'
+    for task in query.all():
+        response += '[[{}]] {} {}\n'.format(task.id, task.name, task.priority)
+    query = db.session.query(Task).filter_by(status='DOING',
+                                             chat=chat).order_by(Task.id)
+
+    response += '\n' + EMOJI_DOING + ' *DOING*\n'
+    for task in query.all():
+        response += '[[{}]] {} {}\n'.format(task.id, task.name, task.priority)
+    query = db.session.query(Task).filter_by(status='DONE',
+                                             chat=chat).order_by(Task.id)
+
+    response += '\n' + EMOJI_DONE + ' *DONE*\n'
+    for task in query.all():
+        response += '[[{}]] {} {}\n'.format(task.id, task.name, task.priority)
+
+    send_message(response, chat)
 
 
 def change_priority(msg, chat):
