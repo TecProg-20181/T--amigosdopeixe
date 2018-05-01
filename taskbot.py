@@ -187,6 +187,32 @@ def list_tasks(msg, chat):
     send_message(response, chat)
 
 
+def duplicate_task(msg, chat):
+    if is_msg_digit(msg, chat):
+        task_id = int(msg)
+        query = db.session.query(Task).filter_by(id=task_id, chat=chat)
+        try:
+            task = query.one()
+        except sqlalchemy.orm.exc.NoResultFound:
+            send_message("_404_ Task {} not found x.x".format(task_id), chat)
+            return
+
+        new_task = Task(chat=task.chat, name=task.name, status=task.status,
+                        dependencies=task.dependencies, parents=task.parents,
+                        priority=task.priority, duedate=task.duedate)
+
+        db.session.add(new_task)
+
+        for t in task.dependencies.split(',')[:-1]:
+            qy = db.session.query(Task).filter_by(id=int(t), chat=chat)
+            t = qy.one()
+            t.parents += '{},'.format(new_task.id)
+
+        db.session.commit()
+        send_message("New task *TODO* [[{}]] {}".
+                     format(new_task.id, new_task.name), chat)
+
+
 def change_priority(msg, chat):
     priority = ''
     if msg != '':
@@ -248,27 +274,7 @@ def handle_updates(updates):
         elif command == '/rename':
             rename_task(msg, chat)
         elif command == '/duplicate':
-            if is_msg_digit(msg, chat):
-                task_id = int(msg)
-                query = db.session.query(Task).filter_by(id=task_id, chat=chat)
-                try:
-                    task = query.one()
-                except sqlalchemy.orm.exc.NoResultFound:
-                    send_message("_404_ Task {} not found x.x".format(task_id), chat)
-                    return
-
-                dtask = Task(chat=task.chat, name=task.name, status=task.status, dependencies=task.dependencies,
-                             parents=task.parents, priority=task.priority, duedate=task.duedate)
-                db.session.add(dtask)
-
-                for t in task.dependencies.split(',')[:-1]:
-                    qy = db.session.query(Task).filter_by(id=int(t), chat=chat)
-                    t = qy.one()
-                    t.parents += '{},'.format(dtask.id)
-
-                db.session.commit()
-                send_message("New task *TODO* [[{}]] {}".format(dtask.id, dtask.name), chat)
-
+            duplicate_task(msg, chat)
         elif command == '/delete':
             if is_msg_digit(msg, chat):
                 task_id = int(msg)
