@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-from sqlalchemy import *
+from sqlalchemy import create_engine, Column
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.types import *
+from sqlalchemy.types import Integer, String, Date
 from sqlalchemy.ext.declarative import declarative_base
 
 engine = create_engine('sqlite:///db.sqlite3', echo=True)
@@ -10,6 +10,7 @@ Session = sessionmaker(bind=engine)
 session = Session()
 
 Base = declarative_base()
+
 
 class Task(Base):
     __tablename__ = 'tasks'
@@ -27,6 +28,7 @@ class Task(Base):
         return "<Task(id={}, chat={}, name='{}', status='{}')>".format(
             self.id, self.chat, self.name, self.status
         )
+
 
 Base.metadata.create_all(engine)
 
