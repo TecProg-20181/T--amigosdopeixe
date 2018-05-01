@@ -96,6 +96,40 @@ def is_msg_digit(msg, chat):
     return False
 
 
+def change_priority(msg, chat):
+    text = ''
+    if msg != '':
+        if len(msg.split(' ', 1)) > 1:
+            text = msg.split(' ', 1)[1]
+        msg = msg.split(' ', 1)[0]
+
+    if is_msg_digit(msg, chat):
+        task_id = int(msg)
+        query = db.session.query(Task).filter_by(id=task_id, chat=chat)
+        try:
+            task = query.one()
+        except sqlalchemy.orm.exc.NoResultFound:
+            send_message("_404_ Task {} not found x.x".format(task_id), chat)
+            return
+
+        if text == '':
+            task.priority = ''
+            send_message("_Cleared_ all priorities from task {}".format(task_id), chat)
+        else:
+            if text.lower() not in ['high', 'medium', 'low']:
+                send_message("The priority *must be* one of the following: high, medium, low", chat)
+            else:
+                if text.lower() == 'low':
+                    task.priority = '\U0001F600'
+                elif text.lower() =='medium':
+                    task.priority = '\U0001F610'
+                elif text.lower() =='high':
+                    task.priority = '\U0001F621'
+
+                send_message("*Task {}* priority has priority *{}*".format(task_id, text.lower()), chat)
+        db.session.commit()
+
+
 def handle_updates(updates):
     for update in updates["result"]:
         if 'message' in update:
@@ -302,38 +336,7 @@ def handle_updates(updates):
                 db.session.commit()
                 send_message("Task {} dependencies up to date".format(task_id), chat)
         elif command == '/priority':
-            text = ''
-            if msg != '':
-                if len(msg.split(' ', 1)) > 1:
-                    text = msg.split(' ', 1)[1]
-                msg = msg.split(' ', 1)[0]
-
-            if is_msg_digit(msg, chat):
-                task_id = int(msg)
-                query = db.session.query(Task).filter_by(id=task_id, chat=chat)
-                try:
-                    task = query.one()
-                except sqlalchemy.orm.exc.NoResultFound:
-                    send_message("_404_ Task {} not found x.x".format(task_id), chat)
-                    return
-
-                if text == '':
-                    task.priority = ''
-                    send_message("_Cleared_ all priorities from task {}".format(task_id), chat)
-                else:
-                    if text.lower() not in ['high', 'medium', 'low']:
-                        send_message("The priority *must be* one of the following: high, medium, low", chat)
-                    else:
-                        if text.lower() == 'low':
-                            task.priority = '\U0001F600'
-                        elif text.lower() =='medium':
-                            task.priority = '\U0001F610'
-                        elif text.lower() =='high':
-                            task.priority = '\U0001F621'
-
-                        send_message("*Task {}* priority has priority *{}*".format(task_id, text.lower()), chat)
-                db.session.commit()
-
+            change_priority(msg, chat)
         elif command == '/start':
             send_message("Welcome! Here is a list of things you can do.", chat)
             send_message(HELP, chat)
