@@ -106,6 +106,14 @@ def is_msg_digit(msg, chat):
     return False
 
 
+def new_task(msg, chat):
+    task = Task(chat=chat, name=msg, status='TODO',
+                dependencies='', parents='', priority='')
+    db.session.add(task)
+    db.session.commit()
+    send_message("New task *TODO* [[{}]] {}".format(task.id, task.name), chat)
+
+
 def list_tasks(msg, chat):
     response = ''
     response += EMOJI_TASK + 'Task List\n'
@@ -207,11 +215,7 @@ def handle_updates(updates):
         print(command, msg, chat)
 
         if command == '/new':
-            task = Task(chat=chat, name=msg, status='TODO', dependencies='', parents='', priority='')
-            db.session.add(task)
-            db.session.commit()
-            send_message("New task *TODO* [[{}]] {}".format(task.id, task.name), chat)
-
+            new_task(msg, chat)
         elif command == '/rename':
             text = ''
             if msg != '':
