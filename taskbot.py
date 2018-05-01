@@ -33,7 +33,6 @@ HELP = """
  /rename ID NOME
  /dependson ID ID...
  /duplicate ID
- /priorityview
  /priority ID PRIORITY{low, medium, high}
  priority low = """ + EMOJI_LOW + """
  priority medium = """ + EMOJI_MEDIUM + """
