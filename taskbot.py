@@ -89,6 +89,13 @@ def deps_text(task, chat, preceed=''):
     return text
 
 
+def is_msg_digit(msg, chat):
+    if msg.isdigit():
+        return True
+    send_message("You must inform the task id", chat)
+    return False
+
+
 def handle_updates(updates):
     for update in updates["result"]:
         if 'message' in update:
@@ -121,9 +128,7 @@ def handle_updates(updates):
                     text = msg.split(' ', 1)[1]
                 msg = msg.split(' ', 1)[0]
 
-            if not msg.isdigit():
-                send_message("You must inform the task id", chat)
-            else:
+            if is_msg_digit(msg, chat):
                 task_id = int(msg)
                 query = db.session.query(Task).filter_by(id=task_id, chat=chat)
                 try:
@@ -141,9 +146,7 @@ def handle_updates(updates):
                 db.session.commit()
                 send_message("Task {} redefined from {} to {}".format(task_id, old_text, text), chat)
         elif command == '/duplicate':
-            if not msg.isdigit():
-                send_message("You must inform the task id", chat)
-            else:
+            if is_msg_digit(msg, chat):
                 task_id = int(msg)
                 query = db.session.query(Task).filter_by(id=task_id, chat=chat)
                 try:
@@ -165,9 +168,7 @@ def handle_updates(updates):
                 send_message("New task *TODO* [[{}]] {}".format(dtask.id, dtask.name), chat)
 
         elif command == '/delete':
-            if not msg.isdigit():
-                send_message("You must inform the task id", chat)
-            else:
+            if is_msg_digit(msg, chat):
                 task_id = int(msg)
                 query = db.session.query(Task).filter_by(id=task_id, chat=chat)
                 try:
@@ -184,9 +185,7 @@ def handle_updates(updates):
                 send_message("Task [[{}]] deleted".format(task_id), chat)
 
         elif command == '/todo':
-            if not msg.isdigit():
-                send_message("You must inform the task id", chat)
-            else:
+            if is_msg_digit(msg, chat):
                 task_id = int(msg)
                 query = db.session.query(Task).filter_by(id=task_id, chat=chat)
                 try:
@@ -199,9 +198,7 @@ def handle_updates(updates):
                 send_message("*TODO* task [[{}]] {} {}".format(task.id, task.name, task.priority), chat)
 
         elif command == '/doing':
-            if not msg.isdigit():
-                send_message("You must inform the task id", chat)
-            else:
+            if is_msg_digit(msg, chat):
                 task_id = int(msg)
                 query = db.session.query(Task).filter_by(id=task_id, chat=chat)
                 try:
@@ -214,9 +211,7 @@ def handle_updates(updates):
                 send_message("*DOING* task [[{}]] {} {}".format(task.id, task.name, task.priority), chat)
 
         elif command == '/done':
-            if not msg.isdigit():
-                send_message("You must inform the task id", chat)
-            else:
+            if is_msg_digit(msg, chat):
                 task_id = int(msg)
                 query = db.session.query(Task).filter_by(id=task_id, chat=chat)
                 try:
@@ -268,9 +263,7 @@ def handle_updates(updates):
                     text = msg.split(' ', 1)[1]
                 msg = msg.split(' ', 1)[0]
 
-            if not msg.isdigit():
-                send_message("You must inform the task id", chat)
-            else:
+            if is_msg_digit(msg, chat):
                 task_id = int(msg)
                 query = db.session.query(Task).filter_by(id=task_id, chat=chat)
                 try:
@@ -315,9 +308,7 @@ def handle_updates(updates):
                     text = msg.split(' ', 1)[1]
                 msg = msg.split(' ', 1)[0]
 
-            if not msg.isdigit():
-                send_message("You must inform the task id", chat)
-            else:
+            if is_msg_digit(msg, chat):
                 task_id = int(msg)
                 query = db.session.query(Task).filter_by(id=task_id, chat=chat)
                 try:
