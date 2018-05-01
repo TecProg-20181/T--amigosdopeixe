@@ -14,6 +14,15 @@ tokenopen = open(TOKEN_FILENAME, 'r')
 tokenread = tokenopen.readline()
 URL = "https://api.telegram.org/bot{}/".format(tokenread.rstrip())
 
+EMOJI_DONE = '\U00002611'
+EMOJI_STATUS = '\U0001F4DD'
+EMOJI_TASK = '\U0001F4CB'
+EMOJI_DOING = '\U000023FA'
+EMOJI_TODO = '\U0001F195'
+EMOJI_LOW = '\U0001F600'
+EMOJI_MEDIUM = '\U0001F610'
+EMOJI_HIGH = '\U0001F621'
+
 HELP = """
  /new NOME
  /todo ID
@@ -26,16 +35,11 @@ HELP = """
  /duplicate ID
  /priorityview
  /priority ID PRIORITY{low, medium, high}
- priority low = \U0001F600
- priority medium = \U0001F610
- priority high = \U0001F621
+ priority low = """ + EMOJI_LOW + """
+ priority medium = """ + EMOJI_MEDIUM + """
+ priority high = """ + EMOJI_HIGH + """
  /help
 """
-EMOJI_DONE = '\U00002611'
-EMOJI_STATUS = '\U0001F4DD'
-EMOJI_TASK = '\U0001F4CB'
-EMOJI_DOING = '\U000023FA'
-EMOJI_TODO = '\U0001F195'
 
 
 def get_url(url):
@@ -147,10 +151,10 @@ def list_tasks(msg, chat):
 
 
 def change_priority(msg, chat):
-    text = ''
+    priority = ''
     if msg != '':
         if len(msg.split(' ', 1)) > 1:
-            text = msg.split(' ', 1)[1]
+            priority = msg.split(' ', 1)[1]
         msg = msg.split(' ', 1)[0]
 
     if is_msg_digit(msg, chat):
@@ -162,21 +166,24 @@ def change_priority(msg, chat):
             send_message("_404_ Task {} not found x.x".format(task_id), chat)
             return
 
-        if text == '':
+        if priority == '':
             task.priority = ''
-            send_message("_Cleared_ all priorities from task {}".format(task_id), chat)
+            send_message("_Cleared_ all priorities from task {}"
+                         .format(task_id), chat)
         else:
-            if text.lower() not in ['high', 'medium', 'low']:
-                send_message("The priority *must be* one of the following: high, medium, low", chat)
+            if priority.lower() not in ['high', 'medium', 'low']:
+                send_message("The priority *must be* one of the following:\
+                              high, medium, low", chat)
             else:
-                if text.lower() == 'low':
-                    task.priority = '\U0001F600'
-                elif text.lower() =='medium':
-                    task.priority = '\U0001F610'
-                elif text.lower() =='high':
-                    task.priority = '\U0001F621'
+                if priority.lower() == 'low':
+                    task.priority = EMOJI_LOW
+                elif priority.lower() == 'medium':
+                    task.priority = EMOJI_MEDIUM
+                elif priority.lower() == 'high':
+                    task.priority = EMOJI_HIGH
 
-                send_message("*Task {}* priority has priority *{}*".format(task_id, text.lower()), chat)
+                send_message("*Task {}* priority has priority *{}*"
+                             .format(task_id, priority.lower()), chat)
         db.session.commit()
 
 
