@@ -114,6 +114,35 @@ def new_task(msg, chat):
     send_message("New task *TODO* [[{}]] {}".format(task.id, task.name), chat)
 
 
+def rename_task(msg, chat):
+    new_name = ''
+    if msg != '':
+        if len(msg.split(' ', 1)) > 1:
+            new_name = msg.split(' ', 1)[1]
+        msg = msg.split(' ', 1)[0]
+
+    if is_msg_digit(msg, chat):
+        task_id = int(msg)
+        query = db.session.query(Task).filter_by(id=task_id, chat=chat)
+        try:
+            task = query.one()
+        except sqlalchemy.orm.exc.NoResultFound:
+            send_message("_404_ Task {} not found x.x".format(task_id), chat)
+            return
+
+        if new_name == '':
+            send_message("You want to modify task {},\
+                         but you didn't provide any new text".
+                         format(task_id), chat)
+            return
+
+        old_name = task.name
+        task.name = new_name
+        db.session.commit()
+        send_message("Task {} redefined from {} to {}".
+                     format(task_id, old_name, new_name), chat)
+
+
 def list_tasks(msg, chat):
     response = ''
     response += EMOJI_TASK + 'Task List\n'
@@ -217,29 +246,7 @@ def handle_updates(updates):
         if command == '/new':
             new_task(msg, chat)
         elif command == '/rename':
-            text = ''
-            if msg != '':
-                if len(msg.split(' ', 1)) > 1:
-                    text = msg.split(' ', 1)[1]
-                msg = msg.split(' ', 1)[0]
-
-            if is_msg_digit(msg, chat):
-                task_id = int(msg)
-                query = db.session.query(Task).filter_by(id=task_id, chat=chat)
-                try:
-                    task = query.one()
-                except sqlalchemy.orm.exc.NoResultFound:
-                    send_message("_404_ Task {} not found x.x".format(task_id), chat)
-                    return
-
-                if text == '':
-                    send_message("You want to modify task {}, but you didn't provide any new text".format(task_id), chat)
-                    return
-
-                old_text = task.name
-                task.name = text
-                db.session.commit()
-                send_message("Task {} redefined from {} to {}".format(task_id, old_text, text), chat)
+            rename_task(msg, chat)
         elif command == '/duplicate':
             if is_msg_digit(msg, chat):
                 task_id = int(msg)
@@ -319,38 +326,7 @@ def handle_updates(updates):
                 send_message("*DONE* task [[{}]] {} {}".format(task.id, task.name, task.priority), chat)
 
         elif command == '/list':
-            a = ''
-
-            a += '\U0001F4CB Task List\n'
-            query = db.session.query(Task).filter_by(parents='', chat=chat).order_by(Task.id)
-            for task in query.all():
-                icon = '\U0001F195'
-                if task.status == 'DOING':
-                    icon = '\U000023FA'
-                elif task.status == 'DONE':
-                    icon = '\U00002611'
-
-                a += '[[{}]] {} {} {}\n'.format(task.id, icon, task.name, task.priority)
-                a += deps_text(task, chat)
-
-            send_message(a, chat)
-            a = ''
-
-            a += '\U0001F4DD _Status_\n'
-            query = db.session.query(Task).filter_by(status='TODO', chat=chat).order_by(Task.id)
-            a += '\n\U0001F195 *TODO*\n'
-            for task in query.all():
-                a += '[[{}]] {} {}\n'.format(task.id, task.name, task.priority)
-            query = db.session.query(Task).filter_by(status='DOING', chat=chat).order_by(Task.id)
-            a += '\n\U000023FA *DOING*\n'
-            for task in query.all():
-                a += '[[{}]] {} {}\n'.format(task.id, task.name, task.priority)
-            query = db.session.query(Task).filter_by(status='DONE', chat=chat).order_by(Task.id)
-            a += '\n\U00002611 *DONE*\n'
-            for task in query.all():
-                a += '[[{}]] {} {}\n'.format(task.id, task.name, task.priority)
-
-            send_message(a, chat)
+            list_tasks(msg, chat)
         elif command == '/dependson':
             text = ''
             if msg != '':
