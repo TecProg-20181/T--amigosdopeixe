@@ -10,10 +10,20 @@ from db import Task
 from datetime import datetime
 
 TOKEN_FILENAME = "token.txt"
+AUTHORIZATION_LOGIN_FILENAME = "login.txt"
+AUTHORIZATION_PASSWORD_FILENAME = "password.txt"
 
 tokenopen = open(TOKEN_FILENAME, 'r')
 tokenread = tokenopen.readline()
+
+loginopen = open(AUTHORIZATION_LOGIN_FILENAME, 'r')
+loginread = loginopen.readline()
+
+passwordopen = open(AUTHORIZATION_PASSWORD_FILENAME, 'r')
+passwordread = passwordopen.readline()
+
 URL = "https://api.telegram.org/bot{}/".format(tokenread.rstrip())
+
 
 EMOJI_DONE = '\U00002611'
 EMOJI_STATUS = '\U0001F4DD'
@@ -48,6 +58,17 @@ def get_url(url):
     content = response.content.decode("utf8")
     return content
 
+def create_issue(title, body=None):
+    url = 'https://api.github.com/repos/TecProg-20181/T--amigosdopeixe/issues'
+    request = requests.Session()
+    request.auth =(loginread.rstrip(), passwordread.rstrip())
+    issue = {'title': title,
+             'body': body}
+    post = request.post(url, json.dumps(issue))
+    if post.status_code == 201:
+        print ('Issue is created!')
+    else:
+        print ("Issue not created.")
 
 def get_json_from_url(url):
     content = get_url(url)
@@ -120,6 +141,7 @@ def new_task(msg, chat):
     db.session.add(task)
     db.session.commit()
     send_message("New task *TODO* [[{}]] {}".format(task.id, task.name), chat)
+    create_issue(task.name, 'Task ID: [{}]\n\ Task Name: {}'.format(task.id, task.name))
 
 
 def rename_task(msg, chat):
