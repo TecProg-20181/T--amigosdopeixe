@@ -34,7 +34,7 @@ HELP = """
  /rename ID NOME
  /dependson ID ID...
  /duplicate ID
- /datetime ID DATE(mm/dd/YYYY)
+ /duedate ID DATE(mm/dd/YYYY)
  /priority ID PRIORITY{low, medium, high}
  priority low = """ + EMOJI_LOW + """
  priority medium = """ + EMOJI_MEDIUM + """
