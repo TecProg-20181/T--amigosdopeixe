@@ -26,9 +26,9 @@ EMOJI_HIGH = '\U0001F621'
 
 HELP = """
  /new NOME
- /todo ID
- /doing ID
- /done ID
+ /todo ID1 ID2 ID3...
+ /doing ID ID2 ID3...
+ /done ID ID2 ID3...
  /delete ID
  /list
  /rename ID NOME
@@ -110,7 +110,7 @@ def deps_text(task, chat, preceed=''):
 def is_msg_digit(msg, chat):
     if msg.isdigit():
         return True
-    send_message("You must inform the task id", chat)
+    send_message("The task id is missing or invalid", chat)
     return False
 
 
@@ -220,19 +220,28 @@ def duplicate_task(msg, chat):
                      format(new_task.id, new_task.name), chat)
 
 
+def get_id_list(msg):
+    id_list = msg.split(' ')
+    return id_list
+
+
 def update_status(msg, status, chat):
-    if is_msg_digit(msg, chat):
-        task_id = int(msg)
-        query = db.session.query(Task).filter_by(id=task_id, chat=chat)
-        try:
-            task = query.one()
-        except sqlalchemy.orm.exc.NoResultFound:
-            send_message("_404_ Task {} not found x.x".format(task_id), chat)
-            return
-        task.status = status
-        db.session.commit()
-        send_message("*" + status + "* task [[{}]] {} {}"
-                     .format(task.id, task.name, task.priority), chat)
+    ids = get_id_list(msg)
+    print(ids)
+    for id in ids:
+        if(is_msg_digit(id, chat)):
+            task_id = int(id)
+            query = db.session.query(Task).filter_by(id=task_id, chat=chat)
+            try:
+                task = query.one()
+            except sqlalchemy.orm.exc.NoResultFound:
+                send_message("_404_ Task {} not found x.x".format(task_id),
+                             chat)
+                return
+            task.status = status
+            db.session.commit()
+            send_message("*" + status + "* task [[{}]] {} {}".format(
+                         task.id, task.name, task.priority), chat)
 
 
 def delete_task(msg, chat):
