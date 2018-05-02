@@ -48,10 +48,12 @@ def get_url(url):
     content = response.content.decode("utf8")
     return content
 
+
 def get_json_from_url(url):
     content = get_url(url)
     js = json.loads(content)
     return js
+
 
 def get_updates(offset=None):
     url = URL + "getUpdates?timeout=100"
@@ -60,12 +62,15 @@ def get_updates(offset=None):
     js = get_json_from_url(url)
     return js
 
+
 def send_message(text, chat_id, reply_markup=None):
     text = urllib.parse.quote_plus(text)
-    url = URL + "sendMessage?text={}&chat_id={}&parse_mode=Markdown".format(text, chat_id)
+    url = URL + "sendMessage?text={}&chat_id={}\
+                 &parse_mode=Markdown".format(text, chat_id)
     if reply_markup:
         url += "&reply_markup={}".format(reply_markup)
     get_url(url)
+
 
 def get_last_update_id(updates):
     update_ids = []
@@ -74,12 +79,14 @@ def get_last_update_id(updates):
 
     return max(update_ids)
 
+
 def deps_text(task, chat, preceed=''):
     text = ''
 
     for i in range(len(task.dependencies.split(',')[:-1])):
         line = preceed
-        query = db.session.query(Task).filter_by(id=int(task.dependencies.split(',')[:-1][i]), chat=chat)
+        query = db.session.query(Task).\
+            filter_by(id=int(task.dependencies.split(',')[:-1][i]), chat=chat)
         dep = query.one()
 
         icon = '\U0001F195'
@@ -158,8 +165,7 @@ def list_tasks(msg, chat):
         elif task.status == 'TODO':
             icon = EMOJI_TODO
 
-        response += '[[{}]] {} {} {} *DEADLINE:* {}\n'.format(task.id,
-                                               icon, task.name, task.priority, task.duedate)
+        response += '[[{}]] {} {} {} *DEADLINE:* {}\n'.format(task.id, icon, task.name, task.priority, task.duedate)
         response += deps_text(task, chat)
 
     send_message(response, chat)
@@ -242,6 +248,11 @@ def delete_task(msg, chat):
             qy = db.session.query(Task).filter_by(id=int(t), chat=chat)
             t = qy.one()
             t.parents = t.parents.replace('{},'.format(task.id), '')
+        for t in task.parents.split(',')[:-1]:
+            query = db.session.query(Task).filter_by(id=int(t), chat=chat)
+            t = query.one()
+            t.dependencies = t.dependencies.replace('{},'.format(task.id), '')
+
         db.session.delete(task)
         db.session.commit()
         send_message("Task [[{}]] deleted".format(task_id), chat)
@@ -334,12 +345,14 @@ def change_priority(msg, chat):
                              .format(task_id, priority.lower()), chat)
         db.session.commit()
 
+
 def date_format(text):
     try:
         datetime.strptime(text, '%m/%d/%Y')
         return True
     except ValueError:
         return False
+
 
 def duedate(msg, chat):
             text = ''
