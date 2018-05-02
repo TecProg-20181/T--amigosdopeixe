@@ -7,6 +7,7 @@ import urllib
 import sqlalchemy
 import db
 from db import Task
+from datetime import datetime
 
 TOKEN_FILENAME = "token.txt"
 
@@ -33,6 +34,7 @@ HELP = """
  /rename ID NOME
  /dependson ID ID...
  /duplicate ID
+ /datetime ID DATE(mm/dd/YYYY)
  /priority ID PRIORITY{low, medium, high}
  priority low = """ + EMOJI_LOW + """
  priority medium = """ + EMOJI_MEDIUM + """
@@ -156,8 +158,8 @@ def list_tasks(msg, chat):
         elif task.status == 'TODO':
             icon = EMOJI_TODO
 
-        response += '[[{}]] {} {} {}\n'.format(task.id,
-                                               icon, task.name, task.priority)
+        response += '[[{}]] {} {} {} *DEADLINE:* {}\n'.format(task.id,
+                                               icon, task.name, task.priority, task.duedate)
         response += deps_text(task, chat)
 
     send_message(response, chat)
@@ -169,13 +171,13 @@ def list_tasks(msg, chat):
                                              chat=chat).order_by(Task.id)
     response += '\n' + EMOJI_TODO + ' *TODO*\n'
     for task in query.all():
-        response += '[[{}]] {} {}\n'.format(task.id, task.name, task.priority)
+        response += '[[{}]] {} {} *DEADLINE:*{}\n'.format(task.id, task.name, task.priority, task.duedate)
     query = db.session.query(Task).filter_by(status='DOING',
                                              chat=chat).order_by(Task.id)
 
     response += '\n' + EMOJI_DOING + ' *DOING*\n'
     for task in query.all():
-        response += '[[{}]] {} {}\n'.format(task.id, task.name, task.priority)
+        response += '[[{}]] {} {} *DEADLINE:*{}\n'.format(task.id, task.name, task.priority, task.duedate)
     query = db.session.query(Task).filter_by(status='DONE',
                                              chat=chat).order_by(Task.id)
 
@@ -332,6 +334,42 @@ def change_priority(msg, chat):
                              .format(task_id, priority.lower()), chat)
         db.session.commit()
 
+def date_format(text):
+    try:
+        datetime.strptime(text, '%m/%d/%Y')
+        return True
+    except ValueError:
+        return False
+
+def duedate(msg, chat):
+            text = ''
+            if msg != '':
+                if len(msg.split(' ', 1)) > 1:
+                    text = msg.split(' ', 1)[1]
+                    msg = msg.split(' ', 1)[0]
+
+                    if not msg.isdigit():
+                        send_message("You must inform the task id", chat)
+                    else:
+                        task_id = int(msg)
+                        query = db.session.query(Task).filter_by(id=task_id, chat=chat)
+                        try:
+                            task = query.one()
+                        except sqlalchemy.orm.exc.NoResultFound:
+                            send_message("_404_ Task {} not found x.x".format(task_id), chat)
+                            return
+
+                        if text == '':
+                            send_message("You want to give a duedate to task {}, but you didn't provide any date".format(task_id), chat)
+                            return
+                        else:
+                            if not date_format(text):
+                                send_message("The duedate needs to be on US Format: mm/dd/YYYY", chat)
+                            else:
+                                task.duedate = datetime.strptime(text, '%m/%d/%Y')
+                                send_message("Task {} deadline is on: {}".format(task_id, text), chat)
+                        db.session.commit()
+
 
 def handle_updates(updates):
     for update in updates["result"]:
@@ -389,6 +427,8 @@ def handle_updates(updates):
         elif command == '/help':
             send_message("Here is a list of things you can do.", chat)
             send_message(HELP, chat)
+        elif command == '/duedate':
+            duedate(msg, chat)
 
         else:
             send_message("I'm sorry dave. I'm afraid I can't do that.", chat)
