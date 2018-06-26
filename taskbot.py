@@ -5,6 +5,7 @@ import requests
 import time
 import urllib
 import sqlalchemy
+from contracts import contract, new_contract
 import db
 from db import Task
 from datetime import datetime
@@ -51,25 +52,31 @@ HELP = """
  priority high = """ + EMOJI_HIGH + """
  /help
 """
+new_contract('valid_task', lambda chat: isinstance(chat, Task))
 
 
+@contract(url='str,!None', returns='str,!None')
 def get_url(url):
     response = requests.get(url)
     content = response.content.decode("utf8")
     return content
 
+
+@contract(title='str, !None', body='str, !None')
 def create_issue(title, body=None):
     url = 'https://api.github.com/repos/TecProg-20181/T--amigosdopeixe/issues'
     request = requests.Session()
-    request.auth =(loginread.rstrip(), passwordread.rstrip())
+    request.auth = (loginread.rstrip(), passwordread.rstrip())
     issue = {'title': title,
              'body': body}
     post = request.post(url, json.dumps(issue))
     if post.status_code == 201:
-        print ('Issue is created!')
+        print('Issue is created!')
     else:
-        print ("Issue not created.")
+        print("Issue not created.")
 
+
+@contract(url='str, !None', returns='dict, !None')
 def get_json_from_url(url):
     content = get_url(url)
     js = json.loads(content)
@@ -84,6 +91,7 @@ def get_updates(offset=None):
     return js
 
 
+@contract(text='str, !None', chat_id='int')
 def send_message(text, chat_id, reply_markup=None):
     text = urllib.parse.quote_plus(text)
     url = URL + "sendMessage?text={}&chat_id={}\
@@ -93,6 +101,7 @@ def send_message(text, chat_id, reply_markup=None):
     get_url(url)
 
 
+@contract(updates='dict, !None', returns='int, !None')
 def get_last_update_id(updates):
     update_ids = []
     for update in updates["result"]:
@@ -101,6 +110,7 @@ def get_last_update_id(updates):
     return max(update_ids)
 
 
+@contract(task='valid_task, !None', chat='int, !None')
 def deps_text(task, chat, preceed=''):
     text = ''
 
@@ -128,6 +138,7 @@ def deps_text(task, chat, preceed=''):
     return text
 
 
+@contract(msg='str, !None', returns='bool, !None')
 def is_msg_digit(msg, chat):
     if msg.isdigit():
         return True
@@ -135,6 +146,7 @@ def is_msg_digit(msg, chat):
     return False
 
 
+@contract(msg='str, !None', chat='int, !None')
 def new_task(msg, chat):
     task = Task(chat=chat, name=msg, status='TODO',
                 dependencies='', parents='', priority='')
@@ -144,6 +156,7 @@ def new_task(msg, chat):
     create_issue(task.name, 'Task ID: [{}]\n\ Task Name: {}'.format(task.id, task.name))
 
 
+@contract(msg='str, !None', chat='int, !None')
 def rename_task(msg, chat):
     new_name = ''
     if msg != '':
@@ -173,6 +186,7 @@ def rename_task(msg, chat):
                      format(task_id, old_name, new_name), chat)
 
 
+@contract(msg='str, !None', chat='int, !None')
 def list_tasks(msg, chat):
     response = ''
     response += EMOJI_TASK + 'Task List\n'
@@ -216,6 +230,7 @@ def list_tasks(msg, chat):
     send_message(response, chat)
 
 
+@contract(msg='str, !None', chat='int, !None')
 def duplicate_task(msg, chat):
     if is_msg_digit(msg, chat):
         task_id = int(msg)
@@ -242,11 +257,13 @@ def duplicate_task(msg, chat):
                      format(new_task.id, new_task.name), chat)
 
 
+@contract(msg='str, !None', returns='list, !None')
 def get_id_list(msg):
     id_list = msg.split(' ')
     return id_list
 
 
+@contract(msg='str, !None', status='str, !None', chat='int, !None')
 def update_status(msg, status, chat):
     ids = get_id_list(msg)
     print(ids)
@@ -266,6 +283,7 @@ def update_status(msg, status, chat):
                          task.id, task.name, task.priority), chat)
 
 
+@contract(msg='str, !None', chat='int, !None')
 def delete_task(msg, chat):
     if is_msg_digit(msg, chat):
         task_id = int(msg)
@@ -289,6 +307,7 @@ def delete_task(msg, chat):
         send_message("Task [[{}]] deleted".format(task_id), chat)
 
 
+@contract(msg='str, !None', chat='int, !None')
 def add_dependency(msg, chat):
     text = ''
     if msg != '':
@@ -340,6 +359,7 @@ def add_dependency(msg, chat):
         send_message("Task {} dependencies up to date".format(task_id), chat)
 
 
+@contract(msg='str, !None', chat='int, !None')
 def change_priority(msg, chat):
     priority = ''
     if msg != '':
@@ -377,6 +397,7 @@ def change_priority(msg, chat):
         db.session.commit()
 
 
+@contract(text='str, !None', returns='bool, !None')
 def date_format(text):
     try:
         datetime.strptime(text, '%m/%d/%Y')
@@ -385,6 +406,7 @@ def date_format(text):
         return False
 
 
+@contract(msg='str, !None', chat='int, !None')
 def duedate(msg, chat):
             text = ''
             if msg != '':
@@ -415,6 +437,7 @@ def duedate(msg, chat):
                         db.session.commit()
 
 
+@contract(updates='dict, !None')
 def handle_updates(updates):
     for update in updates["result"]:
         if 'message' in update:
