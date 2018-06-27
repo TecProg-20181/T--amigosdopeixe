@@ -1,5 +1,6 @@
 db.sqlite3
-
+login.txt
+password.txt
 ### Python ###
 # Byte-compiled / optimized / DLL files
 __pycache__/
