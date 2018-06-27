@@ -1,0 +1,12 @@
+from enum import Enum
+
+class Emojis():
+
+    EMOJI_DONE = '\U00002611'
+    EMOJI_STATUS = '\U0001F4DD'
+    EMOJI_TASK = '\U0001F4CB'
+    EMOJI_DOING = '\U000023FA'
+    EMOJI_TODO = '\U0001F195'
+    EMOJI_LOW = '\U0001F600'
+    EMOJI_MEDIUM = '\U0001F610'
+    EMOJI_HIGH = '\U0001F621'

@@ -6,33 +6,19 @@ import time
 import urllib
 import sqlalchemy
 import db
+from person import Person
+from emojis import Emojis
 from db import Task
 from datetime import datetime
 
-TOKEN_FILENAME = "token.txt"
-AUTHORIZATION_LOGIN_FILENAME = "login.txt"
-AUTHORIZATION_PASSWORD_FILENAME = "password.txt"
+tokenread = Person.showToken("token.txt")
 
-tokenopen = open(TOKEN_FILENAME, 'r')
-tokenread = tokenopen.readline()
+loginread = Person.showLogin("login.txt")
 
-loginopen = open(AUTHORIZATION_LOGIN_FILENAME, 'r')
-loginread = loginopen.readline()
-
-passwordopen = open(AUTHORIZATION_PASSWORD_FILENAME, 'r')
-passwordread = passwordopen.readline()
+passwordread = Person.showPassword("password.txt")
 
 URL = "https://api.telegram.org/bot{}/".format(tokenread.rstrip())
 
-
-EMOJI_DONE = '\U00002611'
-EMOJI_STATUS = '\U0001F4DD'
-EMOJI_TASK = '\U0001F4CB'
-EMOJI_DOING = '\U000023FA'
-EMOJI_TODO = '\U0001F195'
-EMOJI_LOW = '\U0001F600'
-EMOJI_MEDIUM = '\U0001F610'
-EMOJI_HIGH = '\U0001F621'
 
 HELP = """
  /new NOME
@@ -46,9 +32,9 @@ HELP = """
  /duplicate ID
  /duedate ID DATE(mm/dd/YYYY)
  /priority ID PRIORITY{low, medium, high}
- priority low = """ + EMOJI_LOW + """
- priority medium = """ + EMOJI_MEDIUM + """
- priority high = """ + EMOJI_HIGH + """
+ priority low = """ + Emojis.EMOJI_LOW + """
+ priority medium = """ + Emojis.EMOJI_MEDIUM + """
+ priority high = """ + Emojis.EMOJI_HIGH + """
  /help
 """
 
@@ -175,17 +161,17 @@ def rename_task(msg, chat):
 
 def list_tasks(msg, chat):
     response = ''
-    response += EMOJI_TASK + 'Task List\n'
+    response += Emojis.EMOJI_TASK + 'Task List\n'
     query = db.session.query(Task).filter_by(parents='',
                                              chat=chat).order_by(Task.id)
 
     for task in query.all():
         if task.status == 'DOING':
-            icon = EMOJI_DOING
+            icon = Emojis.EMOJI_DOING
         elif task.status == 'DONE':
-            icon = EMOJI_DONE
+            icon = Emojis.EMOJI_DONE
         elif task.status == 'TODO':
-            icon = EMOJI_TODO
+            icon = Emojis.EMOJI_TODO
 
         response += '[[{}]] {} {} {} *DEADLINE:* {}\n'.format(task.id, icon, task.name, task.priority, task.duedate)
         response += deps_text(task, chat)
@@ -193,23 +179,23 @@ def list_tasks(msg, chat):
     send_message(response, chat)
     response = ''
 
-    response += EMOJI_STATUS + ' _Status_\n'
+    response += Emojis.EMOJI_STATUS + ' _Status_\n'
 
     query = db.session.query(Task).filter_by(status='TODO',
                                              chat=chat).order_by(Task.id)
-    response += '\n' + EMOJI_TODO + ' *TODO*\n'
+    response += '\n' + Emojis.EMOJI_TODO + ' *TODO*\n'
     for task in query.all():
         response += '[[{}]] {} {} *DEADLINE:*{}\n'.format(task.id, task.name, task.priority, task.duedate)
     query = db.session.query(Task).filter_by(status='DOING',
                                              chat=chat).order_by(Task.id)
 
-    response += '\n' + EMOJI_DOING + ' *DOING*\n'
+    response += '\n' + Emojis.EMOJI_DOING + ' *DOING*\n'
     for task in query.all():
         response += '[[{}]] {} {} *DEADLINE:*{}\n'.format(task.id, task.name, task.priority, task.duedate)
     query = db.session.query(Task).filter_by(status='DONE',
                                              chat=chat).order_by(Task.id)
 
-    response += '\n' + EMOJI_DONE + ' *DONE*\n'
+    response += '\n' + Emojis.EMOJI_DONE + ' *DONE*\n'
     for task in query.all():
         response += '[[{}]] {} {}\n'.format(task.id, task.name, task.priority)
 
@@ -366,11 +352,11 @@ def change_priority(msg, chat):
                               high, medium, low", chat)
             else:
                 if priority.lower() == 'low':
-                    task.priority = EMOJI_LOW
+                    task.priority = Emojis.EMOJI_LOW
                 elif priority.lower() == 'medium':
-                    task.priority = EMOJI_MEDIUM
+                    task.priority = Emojis.EMOJI_MEDIUM
                 elif priority.lower() == 'high':
-                    task.priority = EMOJI_HIGH
+                    task.priority = Emojis.EMOJI_HIGH
 
                 send_message("*Task {}* priority has priority *{}*"
                              .format(task_id, priority.lower()), chat)
@@ -482,6 +468,7 @@ def main():
     last_update_id = None
 
     while True:
+        
         print("Updates")
         updates = get_updates(last_update_id)
 
