@@ -4,12 +4,17 @@ from db import Task
 from datetime import datetime
 from theBot import PeixeBot
 from emojis import Emojis
+from contracts import contract, new_contract
+
 
 class HandleTask(PeixeBot):
-    
+
     def __init__(self):
         PeixeBot.__init__(self)
 
+    new_contract('valid_task', lambda chat: isinstance(chat, Task))
+
+    @contract(task='valid_task, !None', chat='int, !None')
     def deps_text(self, task, chat, preceed=''):
         text = ''
 
@@ -36,13 +41,14 @@ class HandleTask(PeixeBot):
 
         return text
 
+    @contract(msg='str, !None', returns='bool, !None')
     def is_msg_digit(self, msg, chat):
         if msg.isdigit():
             return True
         self.send_message("The task id is missing or invalid", chat)
         return False
 
-
+    @contract(msg='str, !None', chat='int, !None')
     def new_task(self, msg, chat):
         task = Task(chat=chat, name=msg, status='TODO',
                     dependencies='', parents='', priority='')
@@ -51,6 +57,7 @@ class HandleTask(PeixeBot):
         self.send_message("New task *TODO* [[{}]] {}".format(task.id, task.name), chat)
         self.create_issue(task.name, 'Task ID: [{}]\n\ Task Name: {}'.format(task.id, task.name))
 
+    @contract(msg='str, !None', chat='int, !None')
     def rename_task(self, msg, chat):
         new_name = ''
         if msg != '':
@@ -79,6 +86,7 @@ class HandleTask(PeixeBot):
             self.send_message("Task {} redefined from {} to {}".
                         format(task_id, old_name, new_name), chat)
 
+    @contract(msg='str, !None', chat='int, !None')
     def list_tasks(self, msg, chat):
         response = ''
         response += Emojis.EMOJI_TASK + 'Task List\n'
@@ -121,6 +129,7 @@ class HandleTask(PeixeBot):
 
         self.send_message(response, chat)
 
+    @contract(msg='str, !None', chat='int, !None')
     def duplicate_task(self, msg, chat):
         if self.is_msg_digit(msg, chat):
             task_id = int(msg)
@@ -146,10 +155,12 @@ class HandleTask(PeixeBot):
             self.send_message("New task *TODO* [[{}]] {}".
                         format(new_task.id, new_task.name), chat)
 
+    @contract(msg='str, !None', returns='list, !None')
     def get_id_list(self, msg):
         id_list = msg.split(' ')
         return id_list
 
+    @contract(msg='str, !None', status='str, !None', chat='int, !None')
     def update_status(self, msg, status, chat):
         ids = self.get_id_list(msg)
         print(ids)
@@ -168,6 +179,7 @@ class HandleTask(PeixeBot):
                 self.send_message("*" + status + "* task [[{}]] {} {}".format(
                             task.id, task.name, task.priority), chat)
 
+    @contract(msg='str, !None', chat='int, !None')
     def delete_task(self, msg, chat):
         if self.is_msg_digit(msg, chat):
             task_id = int(msg)
@@ -190,6 +202,7 @@ class HandleTask(PeixeBot):
             db.session.commit()
             self.send_message("Task [[{}]] deleted".format(task_id), chat)
 
+    @contract(msg='str, !None', chat='int, !None')
     def add_dependency(self, msg, chat):
         text = ''
         if msg != '':
@@ -240,6 +253,7 @@ class HandleTask(PeixeBot):
             db.session.commit()
             self.send_message("Task {} dependencies up to date".format(task_id), chat)
 
+    @contract(msg='str, !None', chat='int, !None')
     def change_priority(self, msg, chat):
         priority = ''
         if msg != '':
@@ -274,8 +288,9 @@ class HandleTask(PeixeBot):
 
                     self.send_message("*Task {}* priority has priority *{}*"
                                 .format(task_id, priority.lower()), chat)
-            db.session.commit()                        
+            db.session.commit()
 
+    @contract(text='str, !None', returns='bool, !None')
     def date_format(self, text):
         try:
             datetime.strptime(text, '%m/%d/%Y')
@@ -283,6 +298,7 @@ class HandleTask(PeixeBot):
         except ValueError:
             return False
 
+    @contract(msg='str, !None', chat='int, !None')
     def duedate(self, msg, chat):
         text = ''
         if msg != '':
@@ -312,6 +328,7 @@ class HandleTask(PeixeBot):
                             self.send_message("Task {} deadline is on: {}".format(task_id, text), chat)
                     db.session.commit()
 
+    @contract(updates='dict, !None')
     def handle_updates(self, updates):
         for update in updates["result"]:
             if 'message' in update:
@@ -367,7 +384,7 @@ class HandleTask(PeixeBot):
                 self.send_message(self.HELP, chat)
 
             elif command == '/help':
-                self.send_message("Here is a list " 
+                self.send_message("Here is a list "
                                       "of things you can do.", chat)
                 self.send_message(self.HELP, chat)
             elif command == '/duedate':

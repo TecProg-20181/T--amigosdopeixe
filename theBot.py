@@ -3,6 +3,8 @@ import requests
 import urllib
 from person import Person
 from emojis import Emojis
+from contracts import contract
+
 
 class PeixeBot():
     def __init__(self):
@@ -29,11 +31,13 @@ class PeixeBot():
                     /help
                     """
 
+    @contract(url='str,!None', returns='str,!None')
     def get_url(self, url):
         response = requests.get(url)
         content = response.content.decode("utf8")
         return content
 
+    @contract(url='str, !None', returns='dict, !None')
     def get_json_from_url(self, url):
         content = self.get_url(url)
         js = json.loads(content)
@@ -46,6 +50,7 @@ class PeixeBot():
         js = self.get_json_from_url(url)
         return js
 
+    @contract(text='str, !None', chat_id='int')
     def send_message(self, text, chat_id, reply_markup=None):
         text = urllib.parse.quote_plus(text)
         url = self.URL + "sendMessage?text={}&chat_id={}\
@@ -53,14 +58,16 @@ class PeixeBot():
         if reply_markup:
             url += "&reply_markup={}".format(reply_markup)
         self.get_url(url)
-    
+
+    @contract(updates='dict, !None', returns='int, !None')
     def get_last_update_id(self, updates):
         update_ids = []
         for update in updates["result"]:
             update_ids.append(int(update["update_id"]))
 
         return max(update_ids)
-    
+
+    @contract(title='str, !None', body='str, !None')
     def create_issue(self, title, body=None):
         url = 'https://api.github.com/repos/TecProg-20181/T--amigosdopeixe/issues'
         request = requests.Session()
@@ -71,4 +78,4 @@ class PeixeBot():
         if post.status_code == 201:
             print ('Issue is created!')
         else:
-            print ("Issue not created.") 
+            print ("Issue not created.")
