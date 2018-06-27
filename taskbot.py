@@ -1,11 +1,12 @@
 from handletask import HandleTask
 import time
 
+
 def main():
     last_update_id = None
     mytask = HandleTask()
     while True:
-        
+
         print("Updates")
         updates = mytask.get_updates(last_update_id)
 
