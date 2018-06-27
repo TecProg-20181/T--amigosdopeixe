@@ -339,56 +339,59 @@ class HandleTask(PeixeBot):
                 print('Can\'t process! {}'.format(update))
                 return
 
-            command = message["text"].split(" ", 1)[0]
-            msg = ''
-            if len(message["text"].split(" ", 1)) > 1:
-                msg = message["text"].split(" ", 1)[1].strip()
-
             chat = message["chat"]["id"]
 
-            print(command, msg, chat)
+            if('text' in message):
+                command = message["text"].split(" ", 1)[0]
+                msg = ''
+                if len(message["text"].split(" ", 1)) > 1:
+                    msg = message["text"].split(" ", 1)[1].strip()
 
-            if command == '/new':
-                self.new_task(msg, chat)
+                print(command, msg, chat)
 
-            elif command == '/rename':
-                self.rename_task(msg, chat)
+                if command == '/new':
+                    self.new_task(msg, chat)
 
-            elif command == '/duplicate':
-                self.duplicate_task(msg, chat)
+                elif command == '/rename':
+                    self.rename_task(msg, chat)
 
-            elif command == '/delete':
-                self.delete_task(msg, chat)
+                elif command == '/duplicate':
+                    self.duplicate_task(msg, chat)
 
-            elif command == '/todo':
-                self.update_status(msg, "TODO", chat)
+                elif command == '/delete':
+                    self.delete_task(msg, chat)
 
-            elif command == '/doing':
-                self.update_status(msg, "DOING", chat)
+                elif command == '/todo':
+                    self.update_status(msg, "TODO", chat)
 
-            elif command == '/done':
-                self.update_status(msg, "DONE", chat)
+                elif command == '/doing':
+                    self.update_status(msg, "DOING", chat)
 
-            elif command == '/list':
-                self.list_tasks(msg, chat)
+                elif command == '/done':
+                    self.update_status(msg, "DONE", chat)
 
-            elif command == '/dependson':
-                self.add_dependency(msg, chat)
+                elif command == '/list':
+                    self.list_tasks(msg, chat)
 
-            elif command == '/priority':
-                self.change_priority(msg, chat)
+                elif command == '/dependson':
+                    self.add_dependency(msg, chat)
 
-            elif command == '/start':
-                self.send_message("Welcome! Here is a list"
-                                      " of things you can do.", chat)
-                self.send_message(self.HELP, chat)
+                elif command == '/priority':
+                    self.change_priority(msg, chat)
 
-            elif command == '/help':
-                self.send_message("Here is a list "
-                                      "of things you can do.", chat)
-                self.send_message(self.HELP, chat)
-            elif command == '/duedate':
-                self.duedate(msg, chat)
+                elif command == '/start':
+                    self.send_message("Welcome! Here is a list"
+                                          " of things you can do.", chat)
+                    self.send_message(self.HELP, chat)
+
+                elif command == '/help':
+                    self.send_message("Here is a list "
+                                          "of things you can do.", chat)
+                    self.send_message(self.HELP, chat)
+                elif command == '/duedate':
+                    self.duedate(msg, chat)
+                else:
+                    self.send_message("I'm sorry dave. I'm afraid I can't do that.", chat)
 
             else:
                 self.send_message("I'm sorry dave. I'm afraid I can't do that.", chat)
