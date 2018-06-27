@@ -13,21 +13,21 @@ class PeixeBot():
 
         self.HELP = """
                     /new NOME
-                    /todo ID1 ID2 ID3...
-                    /doing ID ID2 ID3...
-                    /done ID ID2 ID3...
-                    /delete ID
-                    /list
-                    /rename ID NOME
-                    /dependson ID ID...
-                    /duplicate ID
-                    /duedate ID DATE(mm/dd/YYYY)
-                    /priority ID PRIORITY{low, medium, high}
-                    priority low = """ + Emojis.EMOJI_LOW + """
-                    priority medium = """ + Emojis.EMOJI_MEDIUM + """
-                    priority high = """ + Emojis.EMOJI_HIGH + """
-                    /help
-                    """
+/todo ID1 ID2 ID3...
+/doing ID ID2 ID3...
+/done ID ID2 ID3...
+/delete ID
+/list
+/rename ID NOME
+/dependson ID ID...
+/duplicate ID
+/duedate ID DATE(mm/dd/YYYY)
+/priority ID PRIORITY{low, medium, high}
+priority low = """ + Emojis.EMOJI_LOW + """
+priority medium = """ + Emojis.EMOJI_MEDIUM + """
+priority high = """ + Emojis.EMOJI_HIGH + """
+/help
+"""
 
     def get_url(self, url):
         response = requests.get(url)
